@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\AstroEventsRequest;
 
 class AstroController extends Controller
 {
-    public function events(Request $r)
+    public function events(AstroEventsRequest $r)
     {
-        $lat  = (float) $r->query('lat', 55.7558);
-        $lon  = (float) $r->query('lon', 37.6176);
-        $days = max(1, min(30, (int) $r->query('days', 7)));
+        $validated = $r->validated();
+
+        $lat  = (float) ($validated['lat'] ?? 55.7558);
+        $lon  = (float) ($validated['lon'] ?? 37.6176);
+        $days = (int)   ($validated['days'] ?? 7);
 
         $from = now('UTC')->toDateString();
         $to   = now('UTC')->addDays($days)->toDateString();

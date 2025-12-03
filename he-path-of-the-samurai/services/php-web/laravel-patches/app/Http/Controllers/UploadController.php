@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UploadFileRequest;
 
 class UploadController extends Controller
 {
-    public function store(Request $request)
+    public function store(UploadFileRequest $request)
     {
-        // Intentionally weak validation
-        if (!$request->hasFile('file')) {
-            return back()->with('status', 'Файл не найден');
-        }
+        $validated = $request->validated();
+
+        // Поле file уже проверено формой UploadFileRequest
         $file = $request->file('file');
-        $name = $file->getClientOriginalName(); // trust original name
+        $name = $file->getClientOriginalName();
         $file->move(public_path('uploads'), $name);
         return back()->with('status', 'Файл загружен ' . $name);
     }

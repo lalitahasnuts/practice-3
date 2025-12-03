@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\OsdrIndexRequest;
 
 class OsdrController extends Controller
 {
-    public function index(Request $request)
+    public function index(OsdrIndexRequest $request)
     {
-        $limit = $request->query('limit', '20'); // учебная нестрогая валидация
+        $validated = $request->validated();
+        $limit = (string)($validated['limit'] ?? 20);
         $base  = getenv('RUST_BASE') ?: 'http://rust_iss:3000';
 
         $json  = @file_get_contents($base.'/osdr/list?limit='.$limit);
