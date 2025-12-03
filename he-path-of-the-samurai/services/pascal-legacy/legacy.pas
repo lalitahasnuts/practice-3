@@ -12,6 +12,11 @@ begin
   if v = '' then Exit(def) else Exit(v);
 end;
 
+function GetEnvIntDef(const name: string; def: Integer): Integer;
+begin
+  Result := StrToIntDef(GetEnvDef(name, IntToStr(def)), def);
+end;
+
 function RandFloat(minV, maxV: Double): Double;
 begin
   Result := minV + Random * (maxV - minV);
@@ -229,17 +234,42 @@ begin
   fpSystem(copyCmd);
 end;
 
-var period: Integer;
+var
+  period: Integer;
+  rateWindowSec, rateMax: Integer;
+  rateWindowStart: TDateTime;
+  rateWindowCount: Integer;
+  nowDt: TDateTime;
 begin
   Randomize;
   period := StrToIntDef(GetEnvDef('GEN_PERIOD_SEC', '300'), 300);
+  // Rate-limit: не более rateMax запусков за rateWindowSec секунд
+  rateWindowSec := GetEnvIntDef('LEGACY_RATE_WINDOW_SEC', 60);
+  rateMax := GetEnvIntDef('LEGACY_RATE_MAX', 10);
+  rateWindowStart := Now;
+  rateWindowCount := 0;
   while True do
   begin
-    try
-      GenerateAndCopy();
-    except
-      on E: Exception do
-        WriteLn('Legacy error: ', E.Message);
+    nowDt := Now;
+    if (rateWindowSec > 0) and (SecondsBetween(nowDt, rateWindowStart) >= rateWindowSec) then
+    begin
+      rateWindowStart := nowDt;
+      rateWindowCount := 0;
+    end;
+
+    if (rateMax > 0) and (rateWindowCount >= rateMax) then
+    begin
+      WriteLn('Legacy rate-limit: window full, skipping generation this cycle');
+    end
+    else
+    begin
+      try
+        GenerateAndCopy();
+        Inc(rateWindowCount);
+      except
+        on E: Exception do
+          WriteLn('Legacy error: ', E.Message);
+      end;
     end;
     Sleep(period * 1000);
   end;
