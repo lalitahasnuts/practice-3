@@ -6,6 +6,12 @@ use App\Http\Requests\AstroEventsRequest;
 
 class AstroController extends Controller
 {
+    public function page()
+    {
+        // фронт сам дергает /api/astro/events, здесь только контейнер
+        return view('astro');
+    }
+
     public function events(AstroEventsRequest $r)
     {
         $validated = $r->validated();

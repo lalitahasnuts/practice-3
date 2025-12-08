@@ -38,6 +38,12 @@ class DashboardController extends Controller
         ]);
     }
 
+    /** Отдельная страница галереи JWST (фронт тянет данные через /api/jwst/feed) */
+    public function jwst()
+    {
+        return view('jwst');
+    }
+
     /**
      * /api/jwst/feed — серверный прокси/нормализатор JWST картинок.
      * QS:
