@@ -59,6 +59,9 @@
 
 docker-compose up -d --build
 
+Остановка
+docker-compose down
+
 Доступ к приложениям
 
 http://localhost:8080
