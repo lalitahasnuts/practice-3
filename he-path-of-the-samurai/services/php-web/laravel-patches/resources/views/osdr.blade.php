@@ -120,32 +120,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function render(list){
     countEl.textContent = list.length;
+    body.innerHTML = '';
+
     if (!list.length){
-      body.innerHTML = '<tr><td colspan="7" class="text-white-50 text-center">нет данных по фильтрам</td></tr>';
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 7;
+      td.className = 'text-white-50 text-center';
+      td.textContent = 'нет данных по фильтрам';
+      tr.appendChild(td);
+      body.appendChild(tr);
       return;
     }
-    body.innerHTML = list.map(row => {
+
+    list.forEach(row => {
       const rawId = `raw-${row.id}-${(row.dataset_id||row.id)}`.replace(/[^a-zA-Z0-9_-]/g,'');
       const title = row.title || '—';
-      return `
-        <tr class="fade-in">
-          <td>${row.id}</td>
-          <td>${row.dataset_id || '—'}</td>
-          <td style="max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${title}">
-            ${title}
-          </td>
-          <td>${row.rest_url ? `<a href="${row.rest_url}" target="_blank" rel="noopener">открыть</a>` : '—'}</td>
-          <td>${row.updated_at || '—'}</td>
-          <td>${row.inserted_at || '—'}</td>
-          <td><button class="btn btn-outline-light btn-sm" data-bs-toggle="collapse" data-bs-target="#${rawId}">JSON</button></td>
-        </tr>
-        <tr class="collapse" id="${rawId}">
-          <td colspan="7">
-            <pre class="mb-0 small text-white-50" style="max-height:260px;overflow:auto">${JSON.stringify(row.raw || {}, null, 2)}</pre>
-          </td>
-        </tr>
-      `;
-    }).join('');
+
+      const tr = document.createElement('tr');
+      tr.className = 'fade-in';
+
+      const cells = [
+        row.id,
+        row.dataset_id || '—',
+        title,
+        row.updated_at || '—',
+        row.inserted_at || '—',
+      ];
+
+      cells.forEach((val, idx) => {
+        const td = document.createElement('td');
+        if (idx === 2) {
+          td.style.maxWidth = '420px';
+          td.style.overflow = 'hidden';
+          td.style.textOverflow = 'ellipsis';
+          td.style.whiteSpace = 'nowrap';
+          td.title = title;
+        }
+        td.textContent = val ?? '—';
+        tr.appendChild(td);
+      });
+
+      const linkTd = document.createElement('td');
+      if (row.rest_url) {
+        const a = document.createElement('a');
+        a.href = row.rest_url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = 'открыть';
+        linkTd.appendChild(a);
+      } else {
+        linkTd.textContent = '—';
+      }
+      tr.insertBefore(linkTd, tr.children[3]);
+
+      const actionTd = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-outline-light btn-sm';
+      btn.setAttribute('data-bs-toggle', 'collapse');
+      btn.setAttribute('data-bs-target', `#${rawId}`);
+      btn.textContent = 'JSON';
+      actionTd.appendChild(btn);
+      tr.appendChild(actionTd);
+
+      body.appendChild(tr);
+
+      const collapseTr = document.createElement('tr');
+      collapseTr.className = 'collapse';
+      collapseTr.id = rawId;
+
+      const collapseTd = document.createElement('td');
+      collapseTd.colSpan = 7;
+
+      const pre = document.createElement('pre');
+      pre.className = 'mb-0 small text-white-50';
+      pre.style.maxHeight = '260px';
+      pre.style.overflow = 'auto';
+      pre.textContent = JSON.stringify(row.raw || {}, null, 2);
+
+      collapseTd.appendChild(pre);
+      collapseTr.appendChild(collapseTd);
+      body.appendChild(collapseTr);
+    });
   }
 
   function apply(){

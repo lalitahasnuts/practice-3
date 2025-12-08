@@ -9,10 +9,12 @@ class OsdrController extends Controller
     public function index(OsdrIndexRequest $request)
     {
         $validated = $request->validated();
-        $limit = (string)($validated['limit'] ?? 20);
-        $base  = getenv('RUST_BASE') ?: 'http://rust_iss:3000';
+        $limit = (int)($validated['limit'] ?? 20);
+        $base  = env('RUST_BASE', 'http://rust_iss:3000');
 
-        $json  = @file_get_contents($base.'/osdr/list?limit='.$limit);
+        // Безопасная сборка URL и обработка ошибок запроса.
+        $query = http_build_query(['limit' => $limit]);
+        $json  = @file_get_contents($base.'/osdr/list?'.$query);
         $data  = $json ? json_decode($json, true) : ['items' => []];
         $items = $data['items'] ?? [];
 
